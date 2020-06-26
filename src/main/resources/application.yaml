@@ -1,0 +1,46 @@
+resilience4j.retry:
+  instances:
+    retry1:
+      maxRetryAttempts: 1
+      registerHealthIndicator: true
+      waitDuration: 3s
+      enableExponentialBackoff: true
+      retryExceptions:
+        - java.lang.RuntimeException
+    retry2:
+      maxRetryAttempts: 3
+      registerHealthIndicator: true
+      enableExponentialBackoff: true
+      retryExceptions:
+        - java.lang.RuntimeException
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      registerHealthIndicator: true
+      slidingWindowSize: 10
+  instances:
+    circuitBreakerA:
+      minimumNumberOfCalls: 3
+      waitDurationInOpenState: 30s
+      failureRateThreshold: 30
+resilience4j.timelimiter:
+#  configs:
+#    default:
+#      timeoutDuration: 5s
+#      cancelRunningFuture: true
+  instances:
+    backendA:
+      cancelRunningFuture: true
+      timeoutDuration: 1s
+resilience4j.bulkhead:
+  instances:
+    bulkheadSemaphore:
+      maxConCurrentCalls: 10
+      maxWaitDuration: 6s # if absent, then its ZERO, causing immediate exception
+resilience4j.thread-pool-bulkhead:
+  instances:
+    bulkheadTP:
+      maxThreadPoolSize: 10
+      coreThreadPoolSize: 5
+      queueCapacity: 3
+management.endpoints.web.exposure.include: info, health, metrics
