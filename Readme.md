@@ -17,3 +17,7 @@ If you want to change this order, use decorator way of adding resiliency
 ###### F) Tried to inject a Bean and use it in Aspect, but that did not work . Aspect was unable to look up that Bean (See BeanFarm Package)
 
 Also JMeter File is attached: 
+
+Couple of issues: 
+TimeLimiter and Retry are not working together. Because of Sequence above?
+The Bulkhead too is not working with TimeLimiter  It should. Will recheck.

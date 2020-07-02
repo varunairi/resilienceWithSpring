@@ -1,6 +1,9 @@
 package com.varun.resilience.spring.controller;
 
 import com.varun.resilience.spring.service.ServiceA;
+import io.github.resilience4j.timelimiter.TimeLimiter;
+import io.github.resilience4j.timelimiter.TimeLimiterConfig;
+import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,8 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.io.Serializable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.time.Duration;
+import java.util.concurrent.*;
 
 @RestController
 public class EndPointController {
@@ -46,7 +49,7 @@ public class EndPointController {
      */
     @GetMapping(path="/rest/serviceRetryOverride")
     public ResponseEntity serviceRetryOverride(@RequestParam (required =  false) String id, @RequestParam(required = false) boolean alwaysFailure){
-        String message = this.serviceA.retryOnResultToo(id, alwaysFailure);
+        String message = null;// this.serviceA.retryOnResultToo(id, alwaysFailure);
         if (message.startsWith("Failure"))
             return new ResponseEntity(new Status(message, "Failure"), HttpStatus.EXPECTATION_FAILED);
         return new ResponseEntity(new Status(message, "Success"), HttpStatus.OK);
@@ -100,12 +103,14 @@ public class EndPointController {
 
     @GetMapping(path="/rest/serviceRetry")
     public ResponseEntity getserviceExceptionRetryq(@RequestParam (required =  false) String id,
-                                                    @RequestParam int delay) throws ExecutionException, InterruptedException {
-        String message  = this.serviceA.letsGetData(id,delay).toCompletableFuture().get();
-
+                                                    @RequestParam int delay) throws Exception {
+        String message=this.serviceA.letsGetData(id,delay).toCompletableFuture().get();
+       //Success";
         if (message.startsWith("Failure"))
             return new ResponseEntity(new Status(message, "Failure"), HttpStatus.EXPECTATION_FAILED);
         return new ResponseEntity(new Status(message, "Success"), HttpStatus.OK);
+
+
     }
 
 

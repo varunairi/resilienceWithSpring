@@ -13,6 +13,13 @@ resilience4j.retry:
       enableExponentialBackoff: true
       retryExceptions:
         - java.lang.RuntimeException
+    retry3:
+      maxRetryAttempts: 3
+      registerHealthIndicator: true
+      enableExponentialBackoff: true
+      retryExceptions:
+        - java.lang.RuntimeException
+#      retryOnPredicate: com.varun.resilience.spring.predicate.MyOwnPredicate
 resilience4j.circuitbreaker:
   configs:
     default:
@@ -30,8 +37,9 @@ resilience4j.timelimiter:
 #      cancelRunningFuture: true
   instances:
     backendA:
+      timeoutDuration: 5s
       cancelRunningFuture: true
-      timeoutDuration: 1s
+
 resilience4j.bulkhead:
   instances:
     bulkheadSemaphore:

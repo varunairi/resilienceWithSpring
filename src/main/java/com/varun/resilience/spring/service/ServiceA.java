@@ -4,18 +4,19 @@ import io.github.resilience4j.bulkhead.annotation.Bulkhead;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
-import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.Future;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 public class ServiceA {
+
+    ExecutorService es = Executors.newFixedThreadPool(15);
+
     @CircuitBreaker(name = "circuitBreakerA")
     //@CircuitBreaker(name = "circuitBreakerA", fallbackMethod = "fallbackForRetry")
     //@TimeLimiter(name = "timeLimiterA")
@@ -46,40 +47,19 @@ public class ServiceA {
 
 
     @TimeLimiter(name="backendA")
-   //@Retry(name="retry1")
+    @Retry(name="retry3")
     public CompletionStage<String> letsGetData(String id, int delay){
-        try {
-            System.out.println(id+ " waiting for : " + delay);
-            Thread.sleep(delay*1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-         CompletableFuture compFuture = new CompletableFuture<>();
-        compFuture.complete("Success");
-        return compFuture;
-    }
+        return  CompletableFuture.supplyAsync(()->{
+             int ddelay = (int)(Math.random()*10d);
+            System.out.println(new Date() + " delaying this thread " + id + " by " + ddelay);
+            try {
+                Thread.sleep(ddelay*1000); //hardcoded delay, change to use "delay" variable to see variable results/.
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return "Success:" + ddelay + " . Serviced by " + Thread.currentThread().getName();
+        }, es); //Important to give you own Thread pool
 
-    /**
-     * Example with overriden Retry
-     */
-    @Retry(name="retryB")
-    public String retryOnResultToo(String id, boolean alwaysFailure){
-        double random = Math.random();
-        if(alwaysFailure || random>0.66d) {//33% chance of failure
-            System.out.println(new Date() + "ID:" +id + " returning failure");
-            throw new RuntimeException();
-        }
-        else if (random<0.33d)
-        {
-            System.out.println( new Date() + "Returning success for ID: " + id);
-            return "Success";
-        }
-
-        else
-        {
-            System.out.println(new Date() + "Returning PARTIAL for ID: " + id);
-            return "Partial";
-        }
     }
 
     /**
@@ -130,8 +110,14 @@ public class ServiceA {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        if(prob> 5)
+        if(prob> 5) {
+            try {
+                Thread.sleep(6000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             throw new RuntimeException(id);
+        }
         return "Success";
     }
     /*
